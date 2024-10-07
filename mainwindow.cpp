@@ -3,6 +3,7 @@
 #include <QMessageBox>
 #include <QRandomGenerator>
 #include <QGridLayout>
+#include <openssl/sha.h>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -26,16 +27,43 @@ MainWindow::~MainWindow()
 
 void MainWindow::authenticateUser() // Проверка PIN-кода
 {
-    const QString pin = "1234";
+    const QString pinFilePath = "C:/exam_project/221_3210_Nikolaev/pin_hash.txt";
 
-    if (ui->EditPin->text() == pin) {
+    // QString enteredPin = ui->lineEditPin->text();
+    // QString enteredHash = hashPin(enteredPin);
+    // qDebug() << enteredHash; be180d34dddf670bded23c372ef94f41d135935bf9ddeaca77d11c1ac53a6bf3
+
+    QFile file(pinFilePath);
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QMessageBox::warning(this, "Ошибка", "Не удалось открыть файл с хешем PIN-кода");
+        return;
+    }
+
+    QTextStream in(&file);
+    QString storedHash = in.readLine();
+    file.close();
+
+    QString enteredPin = ui->EditPin->text();
+    QString enteredHash = hashPin(enteredPin);
+
+    if (storedHash == enteredHash) {
+        // if ("be180d34dddf670bded23c372ef94f41d135935bf9ddeaca77d11c1ac53a6bf3" == enteredHash) {
+        // encryptionKey = generateEncryptionKey(enteredPin);
         ui->stackedWidget->setCurrentIndex(1);
     } else {
-        ui->label->setText("Invalid pin!");
-        ui->label->setStyleSheet("color:red");
+        QMessageBox::warning(this, "Ошибка", "Неверный PIN-код");
     }
 }
 
+
+// Функция генерации хэша для пина
+QString MainWindow::hashPin(const QString &pin)
+{
+    QByteArray hash(SHA256_DIGEST_LENGTH, 0);
+    SHA256(reinterpret_cast<const unsigned char*>(pin.toUtf8().data()), pin.size(), reinterpret_cast<unsigned char*>(hash.data()));
+    // qDebug() << QString::fromLatin1(hash.toHex());
+    return QString::fromLatin1(hash.toHex());
+}
 
 void MainWindow::initializePromoCodes() // Инициализация карточек с промокодами
 {
