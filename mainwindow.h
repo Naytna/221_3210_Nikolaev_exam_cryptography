@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QVector>
 #include <QPushButton>
+#include <QFile>
+#include <QString>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -32,5 +34,6 @@ private:
     void initializePromoCodes();
     void appendNewPromoCode();
     QString createRandomCode();
+    QString hashPin(const QString &pin);
 };
 #endif // MAINWINDOW_H
